@@ -1,7 +1,12 @@
 const express = require('express')
 const consola = require('consola')
+const fs = require('fs')
 const { Nuxt, Builder } = require('nuxt')
 const app = express()
+let multer = require('multer');
+let upload = multer();
+
+
 
 // Import and Set Nuxt.js options
 let config = require('../nuxt.config.js')
@@ -20,6 +25,15 @@ async function start() {
   } else {
     await nuxt.ready()
   }
+  app.post("/api/files",upload.any(),function(req,res){  //自己的路由
+    const files = req.files
+    const json =files.map(file=>{
+      const obj={}
+      obj[file.fieldname] = file.buffer.toString().match(/(?<!\/\/ .*)(?<!\<\!-- .*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+/ig)
+      return obj
+    })
+    res.json(json)
+});
 
   // Give nuxt middleware to express
   app.use(nuxt.render)
