@@ -3,17 +3,18 @@
     <section class="search-container">
       <h4>选择代码</h4>
       <label for="folder_input" class="file-input-label">点击选择文件夹</label>
-      <input ref="inputRef" placeholder="请输入内容" @click="checkModule" type="file" id="folder_input" @change="showFolder" webkitdirectory directory>
+      <input ref="inputRef" placeholder="请输入内容" type="file" id="folder_input" @change="showFolder" webkitdirectory directory>
       <label for="file_input" class="file-input-label">点击选择文件</label>
-      <input ref="inputRef" placeholder="请输入内容" @click="checkModule" type="file" id="file_input" @change="showFolder" multiple>
+      <input ref="inputRef" placeholder="请输入内容" type="file" id="file_input" @change="showFolder" multiple>
       <el-input class="module_input" size="small" placeholder="请输入i18n对应模块" v-model="module" />
     </section>
     <section class="chinese-wrapper">
       <section v-for="(fileChinese,index) in fileChineseArr" :key="index" class="file-chinese">
-        <h5 v-show="fileChinese.fileName!=='all'">文件名称：{{fileChinese.fileName}}
+        <h5 v-if="fileChinese.fileName==='all'" class="all-title">所有中文</h5>
+        <h5 v-else-if="fileChinese.fileName==='rest'" class="all-title">尚未翻译</h5>
+        <h5 v-else>文件名称：{{fileChinese.fileName}}
           <el-button size="small" class="download-btn" @click="()=>download(fileChinese.filePath)">下载修改后的文件</el-button>
         </h5>
-        <h5 v-show="fileChinese.fileName==='all'" class="all-title">所有中文</h5>
         <div class="chinese">
           <p v-for="({chinese,english},index) in fileChinese.json" :key="index">
             <span>{{chinese}}</span>
@@ -40,17 +41,6 @@ export default {
     }
   },
   methods: {
-    checkModule(e) {
-      if (!this.module) {
-        this.$message({
-          message:
-            '请填写文件所属的i18n语言模块（建立统一语言库后将不再需要此参数）',
-          type: 'warning'
-        })
-        e.preventDefault()
-        return false
-      }
-    },
     showFolder(e) {
       const files = e.currentTarget.files
       const form = new FormData()
@@ -65,7 +55,13 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$axios.post('/files', form).then(res => {
-        this.module = ''
+        if (!this.module) {
+          this.$message({
+            message:
+              '未指定对应i18n语言模块，无法显示对应的英文及筛选出对应的中文（建立统一语言库后将不再需要此参数）',
+            type: 'warning'
+          })
+        }
         this.fileChineseArr = res.data.map(x => {
           loading.close()
           let obj = {}

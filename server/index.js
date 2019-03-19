@@ -61,17 +61,23 @@ async function start() {
       const newStr = file.buffer
         .toString()
         .replace(
-          /(?<!\/\/ .*)(?<!\<\!-- .*)(?<=\>.*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+(?=.*\<)/gi,
+          /(?<!\/\/ .*)(?<!\<\!-- .*)(?<=("|').*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+(?=.*("|'))/gi,
           x =>
             DICTIONARY[x.replace('：', '')]
-              ? `\{\{\$t("${module}.${DICTIONARY[x.replace('：', '')]}")\}\}`
+              ? `\$t(\\'${module}.${DICTIONARY[x.replace('：', '')].replace(
+                  /[\' ']/gi,
+                  ''
+                )}\\')`
               : x
         )
         .replace(
           /(?<!\/\/ .*)(?<!\<\!-- .*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+/gi,
           x =>
             DICTIONARY[x.replace('：', '')]
-              ? `\$t('customs.${DICTIONARY[x.replace('：', '')]}')`
+              ? `\{\{\$t("${module}.${DICTIONARY[x.replace('：', '')].replace(
+                  /[\' ']/gi,
+                  ''
+                )}")\}\}`
               : x
         )
       fs.writeFile(filePath, newStr, function(err) {
@@ -82,19 +88,26 @@ async function start() {
       })
       obj[file.fieldname || file.originalname] = chinese.map(x => ({
         chinese: x,
-        english: DICTIONARY[x.replace('：', '')]
+        english: module ? DICTIONARY[x.replace('：', '')] : ''
       }))
       obj.filePath = `http://localhost:${port}/${timestamp}_${index}_${
         file.originalname
       }`
       return obj
     })
+    // 返回中文对应列表中增加所有中文对应及未翻译部分
+    const allUnique = uniqueArr(allArr).map(x => ({
+      chinese: x,
+      english: module ? DICTIONARY[x.replace('：', '')] : ''
+    }))
     json.push({
-      all: uniqueArr(allArr).map(x => ({
-        chinese: x,
-        english: DICTIONARY[x.replace('：', '')]
-      }))
+      all: allUnique
     })
+    if (module) {
+      json.push({
+        rest: allUnique.filter(x => !x.english)
+      })
+    }
     res.json(json)
   })
 
