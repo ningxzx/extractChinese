@@ -7,7 +7,12 @@ const { Nuxt, Builder } = require('nuxt')
 const app = express()
 let multer = require('multer')
 let upload = multer()
-const DICTIONARY = require('../constants/dictionary')
+const { customs, customsCn, customsEn } = require('../constants/dictionary')
+
+let DICTIONARY = {}
+for (let key in customsCn) {
+  DICTIONARY[customsCn[key]] = key
+}
 const uniqueArr = array => {
   var temp = [] //一个新的临时数组
   if (array && array.length) {
