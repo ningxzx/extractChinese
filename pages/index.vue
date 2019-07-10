@@ -43,6 +43,9 @@ export default {
   methods: {
     showFolder(e) {
       const files = e.currentTarget.files
+      if(!files.length){
+        return false
+      }
       const form = new FormData()
       form.append('module', this.module)
       Array.prototype.forEach.call(files, (file, index) => {
@@ -73,7 +76,7 @@ export default {
           }
           obj.filePath = x.filePath
           return obj
-        })
+        }).filter(x=>x.json&&x.json.length)
       })
     },
     download(path) {
