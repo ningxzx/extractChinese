@@ -60,8 +60,9 @@ async function start() {
         let chinese = uniqueArr(
           file.buffer
             .toString()
+            .replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*)/g,'')
             .match(
-              /(?<!\/\/ .*)(?<!\<\!-- .*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+/gi
+              /(?<!\/\/\s*.*)(?<!\<\!--\s*.*)[\u4e00-\u9fa5。？！，、；：“”（）《》〈〉【】『』「」﹃﹄〔〕…—～﹏]+/gi
             )
         );
         allArr = [].concat(allArr, chinese);
